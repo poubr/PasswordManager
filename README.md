@@ -5,7 +5,7 @@ Simple password manager using Tkinter and original graphics (optimized for Mac, 
 The program will save your sign-in data (website, username, password) into a local document data.txt.
 Additionally, upon saving the data, the program will store the password in the clipboard.
 
-The app also includes password generator.
+The app also includes password generator and has a search function for finding already saved information.
 
 
 # How to Run
