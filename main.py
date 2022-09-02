@@ -1,5 +1,6 @@
 from tkinter import *
 from tkinter import messagebox
+import json
 from string import ascii_letters, punctuation, digits
 from random import randint, choice, shuffle
 import pyperclip
@@ -20,6 +21,11 @@ def add_data():
     website = website_entry.get()
     username = username_entry.get()
     password = password_entry.get()
+    new_data = {website: {
+            "username": username,
+            "password": password,
+                    }
+                }
 
     if len(website) == 0 or len(username) == 0 or len(password) == 0:
         messagebox.showerror(title="Cannot save data", message="Data fields cannot be empty.")
@@ -31,13 +37,23 @@ def add_data():
                                                f"Username: {username}\n"
                                                f"Password: {password}\n")
         if is_ok:
-            with open("data.txt", "a") as data:
-                data.write(f"{website} | {username} | {password}\n")
+            try:
+                with open("data.json", "r") as data_file:
+                    data = json.load(data_file)
+            except FileNotFoundError:
+                with open("data.json", "w") as data_file:
+                    json.dump(data, data_file, indent=4)
+            else:
+                data.update(new_data)
+            finally:
+                reset_ui()
 
-            website_entry.delete(0, END)
-            username_entry.delete(0, END)
-            password_entry.delete(0, END)
-            username_entry.insert(0, "name@email.com")
+
+def reset_ui():
+    website_entry.delete(0, END)
+    username_entry.delete(0, END)
+    password_entry.delete(0, END)
+    username_entry.insert(0, "name@email.com")
 
 
 # will generate random password
@@ -53,13 +69,33 @@ def generate_password():
     pyperclip.copy(password)
 
 
+# searches for a password among saved websites
+def search():
+    website = website_entry.get()
+    try:
+        with open("data.json", "r") as data_file:
+            data = json.load(data_file)
+    except FileNotFoundError:
+        messagebox.showerror(title="Password not found", message="You don't have any passwords saved yet.")
+    else:
+        if website in data:
+            messagebox.showinfo(title="login Info", message=f"Website: {website}\n"
+                                                            f"Username: {data[website]['username']}\n"
+                                                            f"Password: {data[website]['password']}")
+        else:
+            messagebox.showerror(title="Password not found", message="You don't have this password saved.")
+
+
 # UI set up - labels, entries, button
 website_label = Label(text="Website:", font=("Arial", 14))
 website_label.grid(row=1, column=0)
 
-website_entry = Entry(width=48)
-website_entry.grid(row=1, column=1, columnspan=2)
+website_entry = Entry(width=31)
+website_entry.grid(row=1, column=1)
 website_entry.focus()
+
+search_button = Button(text="Search", font=("Arial", 14), width=15, command=search)
+search_button.grid(row=1, column=2)
 
 username_label = Label(text="Email/Username:", font=("Arial", 14))
 username_label.grid(row=2, column=0)
