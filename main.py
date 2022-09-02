@@ -22,10 +22,10 @@ def add_data():
     username = username_entry.get()
     password = password_entry.get()
     new_data = {website: {
-            "username": username,
-            "password": password,
-                    }
-                }
+        "username": username,
+        "password": password,
+            }
+        }
 
     if len(website) == 0 or len(username) == 0 or len(password) == 0:
         messagebox.showerror(title="Cannot save data", message="Data fields cannot be empty.")
@@ -42,18 +42,55 @@ def add_data():
                     data = json.load(data_file)
             except FileNotFoundError:
                 with open("data.json", "w") as data_file:
-                    json.dump(data, data_file, indent=4)
+                    json.dump(new_data, data_file, indent=4)
             else:
                 data.update(new_data)
+                write_data(data)
             finally:
                 reset_ui()
 
 
-def reset_ui():
-    website_entry.delete(0, END)
-    username_entry.delete(0, END)
-    password_entry.delete(0, END)
-    username_entry.insert(0, "name@email.com")
+def write_data(data):
+    with open("data.json", "w") as data_file:
+        json.dump(data, data_file, indent=4)
+
+
+def update_data():
+    try:
+        with open("data.json", "r") as data_file:
+            website = website_entry.get()
+            data = json.load(data_file)
+            if website in data:
+                password = password_entry.get()
+                username = username_entry.get()
+                new_data = {website: {
+                        "username": username,
+                        "password": password,
+                    }
+                    }
+                data.update(new_data)
+
+                if len(website) > 0 and len(username) > 0 and len(website):
+                        write_data(data)
+                        messagebox.showinfo(title="Password updated", message="Password updated.")
+                        reset_ui()
+
+                else:
+                    messagebox.showerror(title="Cannot save data", message="Data fields cannot be empty.")
+
+            else:
+                save_new_data = messagebox.askokcancel(title="Password not found",
+                                                           message="This website is not saved.\n"
+                                                                   "Save instead of updating?")
+                if save_new_data:
+                    add_data()
+
+    except FileNotFoundError:
+        save_new_data = messagebox.askokcancel(title="Password not found",
+                                               message="You don't have any passwords to update.\n"
+                                                       "Do you want to save the password instead?")
+        if save_new_data:
+            add_data()
 
 
 # will generate random password
@@ -86,6 +123,13 @@ def search():
             messagebox.showerror(title="Password not found", message="You don't have this password saved.")
 
 
+def reset_ui():
+    website_entry.delete(0, END)
+    username_entry.delete(0, END)
+    password_entry.delete(0, END)
+    username_entry.insert(0, "name@email.com")
+
+
 # UI set up - labels, entries, button
 website_label = Label(text="Website:", font=("Arial", 14))
 website_label.grid(row=1, column=0)
@@ -113,10 +157,10 @@ password_entry.grid(row=3, column=1)
 generate_pswd_button = Button(text="Generate password", font=("Arial", 14), width=15, command=generate_password)
 generate_pswd_button.grid(row=3, column=2)
 
-spacer_label = Label()
-spacer_label.grid(row=4, column=0)
-
 add_button = Button(text="Add", font=("Arial", 14), width=36, command=add_data)
 add_button.grid(row=5, column=1, columnspan=2)
+
+update_button = Button(text="Update", font=("Arial", 14), width=36, command=update_data)
+update_button.grid(row=6, column=1, columnspan=2)
 
 window.mainloop()
